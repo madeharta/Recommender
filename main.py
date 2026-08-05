@@ -27,6 +27,12 @@ def main():
     # Create model
     model = KNeighborsClassifier(n_neighbors=3)
 
+    #print("Let's explore the data set feature here : ")
+    #print("Data : ", iris.data)
+    #print("Target : ", iris.target)
+    #print("Feature Names : ", iris.feature_names)
+    #print("Target Names : ", iris.target_names)
+    #print("Description : ", iris.DESCR)
     # Train
     model.fit(X_train, y_train)
 
@@ -35,7 +41,13 @@ def main():
 
     print("Accuracy:", accuracy)            
 
-    print("This is the end of the program ")
+    print("Now make a new prediction using the model")
+
+    new_flower = [[100.8, 3.0, 4.2, 1.2]]
+
+    prediction = model.predict(new_flower)
+
+    print("New prediction for the ", new_flower, "is : ", prediction)
 
 if __name__ == "__main__":
     main()
