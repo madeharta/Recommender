@@ -1,53 +1,72 @@
 
 import sklearn
+import mlflow
+#import skops.io as sio
 
 from sklearn.datasets import load_iris
 from sklearn.model_selection import train_test_split
 from sklearn.neighbors import KNeighborsClassifier
 
-
 def main():
     # Write your primary logic here
     print(sklearn.__version__)
+    mlflow.set_experiment("demo")
 
-    # Load dataset
-    iris = load_iris()
+    with mlflow.start_run():
 
-    X = iris.data
-    y = iris.target
+        # Load dataset
+        iris = load_iris()
 
-    # Split data
-    X_train, X_test, y_train, y_test = train_test_split(
-        X,
-        y,
-        test_size=0.2,
-        random_state=42
-    )
+        X = iris.data
+        y = iris.target
 
-    # Create model
-    model = KNeighborsClassifier(n_neighbors=3)
+        # Split data
+        X_train, X_test, y_train, y_test = train_test_split(
+            X,
+            y,
+            test_size=0.2,
+            random_state=42
+        )
 
-    #print("Let's explore the data set feature here : ")
-    #print("Data : ", iris.data)
-    #print("Target : ", iris.target)
-    #print("Feature Names : ", iris.feature_names)
-    #print("Target Names : ", iris.target_names)
-    #print("Description : ", iris.DESCR)
-    # Train
-    model.fit(X_train, y_train)
+        # Create model
+        model = KNeighborsClassifier(n_neighbors=3)
 
-    # Evaluate
-    accuracy = model.score(X_test, y_test)
+        #print("Let's explore the data set feature here : ")
+        #print("Data : ", iris.data)
+        #print("Target : ", iris.target)
+        #print("Feature Names : ", iris.feature_names)
+        #print("Target Names : ", iris.target_names)
+        #print("Description : ", iris.DESCR)
+        # Train
+        model.fit(X_train, y_train)
 
-    print("Accuracy:", accuracy)            
+        # Evaluate
+        accuracy = model.score(X_test, y_test)
 
-    print("Now make a new prediction using the model")
+        print("Accuracy:", accuracy)            
 
-    new_flower = [[100.8, 3.0, 4.2, 1.2]]
+        # Here we will log the model to MLFLOW
+    
+        mlflow.log_param("test_size", 0.2)
+        mlflow.log_metric("Accuracy", accuracy)
 
-    prediction = model.predict(new_flower)
+        #trusted_types = sio.get_untrusted_types(file="model.skops")
 
-    print("New prediction for the ", new_flower, "is : ", prediction)
+        #print(trusted_types)
+
+        mlflow.sklearn.log_model(
+            sk_model=model,
+            name="KNN_algorithm",
+            serialization_format="pickle"
+        )
+
+        print("Now make a new prediction using the model")
+
+        new_flower = [[100.8, 3.0, 4.2, 1.2]]
+
+        prediction = model.predict(new_flower)
+
+        print("New prediction for the ", new_flower, "is : ", prediction)
 
 if __name__ == "__main__":
     main()
