@@ -21,6 +21,8 @@ Key design decisions (explained in accompanying report):
    (rolling windows use past data), so there is no look-ahead leakage.
 """
 
+import os
+import kagglehub
 import numpy as np
 import pandas as pd
 import matplotlib
@@ -40,7 +42,15 @@ RANDOM_STATE = 42
 # ---------------------------------------------------------------------
 # 1. Load data
 # ---------------------------------------------------------------------
-df = pd.read_csv("tsla_2014_2023.csv", parse_dates=["date"])
+df = pd.read_csv("data/tsla_2014_2023.csv", parse_dates=["date"])
+
+# Download latest version
+#path = kagglehub.dataset_download("aspillai/tesla-stock-price-with-indicators-10-years")
+
+#print("Path to dataset files:", path)
+# Read CSV
+#df = pd.read_csv(os.path.join(path, "data/tsla_2014_2023.csv"))
+
 df = df.sort_values("date").reset_index(drop=True)
 
 # ---------------------------------------------------------------------
@@ -244,11 +254,11 @@ axes[1].set_title("Prediction error ($) over time")
 axes[1].set_ylabel("Predicted - Actual ($)")
 
 plt.tight_layout()
-plt.savefig("tsla_prediction_results.png", dpi=150)
-print("\nSaved plot -> tsla_prediction_results.png")
+#plt.savefig("tsla_prediction_results.png", dpi=150)
+#print("\nSaved plot -> tsla_prediction_results.png")
 
 # ---------------------------------------------------------------------
 # 11. Persist the trained pipeline
 # ---------------------------------------------------------------------
-joblib.dump(best_model, "tsla_next_day_close_model.joblib")
-print("Saved model -> tsla_next_day_close_model.joblib")
+#joblib.dump(best_model, "tsla_next_day_close_model.joblib")
+#print("Saved model -> tsla_next_day_close_model.joblib")
