@@ -45,7 +45,9 @@ RANDOM_STATE = 42
 # 0. Start MLFlow logging here 
 # ---------------------------------------------------------------------
 
-mlflow.set_experiment("TSLA_Next_Day_Return_Forecasting")
+mlflow.set_tracking_uri("http://127.0.0.1:5000")
+
+mlflow.set_experiment("TSLA_Next_Day_Return_Forecasting_v2")
 
 # ================================================================
 # Start MLflow run
@@ -68,15 +70,9 @@ with mlflow.start_run(run_name="TSLA_model_selection"):
     df = df.sort_values("date").reset_index(drop=True)
 
     # Log param here 
-    mlflow.log_param(
-        "random_state",
-        RANDOM_STATE
-    )
+    mlflow.log_param("random_state", RANDOM_STATE)
 
-    mlflow.log_param(
-        "target",
-        "target_log_return"
-    )
+    mlflow.log_param("target", "target_log_return")
 
     # ---------------------------------------------------------------------
     # 2. Feature engineering
@@ -113,21 +109,12 @@ with mlflow.start_run(run_name="TSLA_model_selection"):
         f"({model_df['date'].min().date()} -> {model_df['date'].max().date()})")
 
     # Another log param here
-    mlflow.log_param(
-        "n_features",
-        len(feature_cols)
-    )
+    mlflow.log_param("n_features", len(feature_cols))
 
-    mlflow.log_param(
-        "n_samples",
-        len(model_df)
-    )
+    mlflow.log_param("n_samples", len(model_df))
 
     # Log feature names as a single parameter
-    mlflow.log_param(
-        "features",
-        ",".join(feature_cols)
-    )
+    mlflow.log_param("features", ",".join(feature_cols))
 
     X = model_df[feature_cols]
     y = model_df["target_log_return"]
@@ -147,30 +134,15 @@ with mlflow.start_run(run_name="TSLA_model_selection"):
     test_dates = dates.iloc[split_idx:]
 
     # Third phase log param
-    mlflow.log_param(
-        "train_test_split",
-        split_ratio
-    )
+    mlflow.log_param("train_test_split", split_ratio)
 
-    mlflow.log_param(
-        "train_samples",
-        len(X_train)
-    )
+    mlflow.log_param("train_samples", len(X_train))
 
-    mlflow.log_param(
-        "test_samples",
-        len(X_test)
-    )
+    mlflow.log_param("test_samples", len(X_test))
 
-    mlflow.log_param(
-        "test_start_date",
-        str(test_dates.min().date())
-    )
+    mlflow.log_param("test_start_date", str(test_dates.min().date()))
 
-    mlflow.log_param(
-        "test_end_date",
-        str(test_dates.max().date())
-    )
+    mlflow.log_param("test_end_date", str(test_dates.max().date()))
 
     print(f"Train: {X_train.shape[0]} rows | Test: {X_test.shape[0]} rows "
         f"({test_dates.min().date()} -> {test_dates.max().date()})")
@@ -189,20 +161,11 @@ with mlflow.start_run(run_name="TSLA_model_selection"):
     # Log param for Naive baseline model
         # Log naive baseline metrics
 
-    mlflow.log_metric(
-        "naive_mae_price",
-        naive_mae
-    )
+    mlflow.log_metric("naive_mae_price", naive_mae)
 
-    mlflow.log_metric(
-        "naive_rmse_price",
-        naive_rmse
-    )
+    mlflow.log_metric("naive_rmse_price", naive_rmse)
 
-    mlflow.log_metric(
-        "naive_directional_accuracy",
-        naive_dir_acc
-    )
+    mlflow.log_metric("naive_directional_accuracy", naive_dir_acc)
 
     # ---------------------------------------------------------------------
     # 5. Candidate models, each in a Pipeline with scaling.
@@ -240,15 +203,9 @@ with mlflow.start_run(run_name="TSLA_model_selection"):
     tscv = TimeSeriesSplit(n_splits=n_splits)
 
     # Another log param here
-    mlflow.log_param(
-        "cv_method",
-        "TimeSeriesSplit"
-    )
+    mlflow.log_param("cv_method", "TimeSeriesSplit")
 
-    mlflow.log_param(
-        "cv_splits",
-        n_splits
-    )
+    mlflow.log_param("cv_splits", n_splits)
 
 
     cv_results = {}
@@ -262,10 +219,7 @@ with mlflow.start_run(run_name="TSLA_model_selection"):
         print(f"{name:>18s} | CV MAE (log-return space): {cv_results[name]:.5f}")
 
      # Log CV result
-    mlflow.log_metric(
-        f"cv_mae_{name.lower()}",
-        cv_results[name]
-    )
+    mlflow.log_metric(f"cv_mae_{name.lower()}", cv_results[name])
 
     # Save CV results
     cv_df = pd.DataFrame(
@@ -275,14 +229,9 @@ with mlflow.start_run(run_name="TSLA_model_selection"):
         }
     )
 
-    cv_df.to_csv(
-        "cv_results.csv",
-        index=False
-    )
+    cv_df.to_csv("cv_results.csv", index=False)
 
-    mlflow.log_artifact(
-        "cv_results.csv"
-    )
+    mlflow.log_artifact("cv_results.csv")
 
     # ---------------------------------------------------------------------
     # 7. Hyperparameter tuning of the selected model on the train set
@@ -291,10 +240,7 @@ with mlflow.start_run(run_name="TSLA_model_selection"):
     best_name = min(cv_results, key=cv_results.get)
     print(f"\nSelected model by CV: {best_name}")
 
-    mlflow.log_param(
-        "selected_model",
-        best_name
-    )
+    mlflow.log_param("selected_model", best_name)
 
     # ---------------------------------------------------------------------
     # 8. Hyperparameter tuning of the selected model on the train set
@@ -329,17 +275,11 @@ with mlflow.start_run(run_name="TSLA_model_selection"):
     # Log best parameters
     for param_name, param_value in grid.best_params_.items():
 
-        mlflow.log_param(
-            f"best_{param_name}",
-            param_value
-        )
+        mlflow.log_param(f"best_{param_name}", param_value)
 
 
     # Log best CV score
-    mlflow.log_metric(
-        "best_cv_mae",
-        -grid.best_score_
-    )
+    mlflow.log_metric("best_cv_mae", -grid.best_score_)
 
     # ---------------------------------------------------------------------
     # 9. Final evaluation on the untouched chronological test set
@@ -364,31 +304,15 @@ with mlflow.start_run(run_name="TSLA_model_selection"):
     # 10. Log final metrics
     # ============================================================
 
-    mlflow.log_metric(
-        "test_mae_price",
-        model_mae
-    )
+    mlflow.log_metric("test_mae_price", model_mae)
 
-    mlflow.log_metric(
-        "test_rmse_price",
-        model_rmse
-    )
+    mlflow.log_metric("test_rmse_price", model_rmse)
 
-    mlflow.log_metric(
-        "test_r2_price",
-        model_r2
-    )
+    mlflow.log_metric("test_r2_price", model_r2)
 
-    mlflow.log_metric(
-        "test_directional_accuracy",
-        model_dir_acc
-    )
+    mlflow.log_metric("test_directional_accuracy", model_dir_acc)
 
-    mlflow.log_metric(
-        "test_mape",
-        model_mape
-    )
-
+    mlflow.log_metric("test_mape", model_mape)
 
     # Improvement relative to naive baseline
 
@@ -400,15 +324,9 @@ with mlflow.start_run(run_name="TSLA_model_selection"):
         naive_rmse - model_rmse
     )
 
-    mlflow.log_metric(
-        "mae_improvement_vs_naive",
-        mae_improvement
-    )
+    mlflow.log_metric("mae_improvement_vs_naive", mae_improvement)
 
-    mlflow.log_metric(
-        "rmse_improvement_vs_naive",
-        rmse_improvement
-    )
+    mlflow.log_metric("rmse_improvement_vs_naive", rmse_improvement)
 
     # ============================================================
     # 11. Print results
@@ -440,14 +358,9 @@ with mlflow.start_run(run_name="TSLA_model_selection"):
             pred_return,
     })
 
-    prediction_df.to_csv(
-        "test_predictions.csv",
-        index=False
-    )
+    prediction_df.to_csv("test_predictions.csv", index=False)
 
-    mlflow.log_artifact(
-        "test_predictions.csv"
-    )
+    mlflow.log_artifact("test_predictions.csv")
 
     # ============================================================
     # 13. Actual vs predicted plot
@@ -488,21 +401,14 @@ with mlflow.start_run(run_name="TSLA_model_selection"):
             .sort_values(ascending=False)
         )
 
-        print(
-            "\nTop feature importances:"
-        )
+        print("\nTop feature importances:")
 
-        print(
-            importances.head(10)
-        )
+        print(importances.head(10))
 
-        importances.to_csv(
-            "feature_importance.csv"
-        )
+        importances.to_csv("feature_importance.csv")
 
-        mlflow.log_artifact(
-            "feature_importance.csv"
-        )
+        mlflow.log_artifact("feature_importance.csv")
+
     elif hasattr(inner_model, "coef_"):
         coefs = pd.Series(
             inner_model.coef_,
@@ -512,59 +418,33 @@ with mlflow.start_run(run_name="TSLA_model_selection"):
             ascending=False
         )
 
-        print(
-            "\nTop feature coefficients:"
-        )
+        print("\nTop feature coefficients:")
 
-        print(
-            coefs.head(10)
-        )
+        print(coefs.head(10))
 
-        coefs.to_csv(
-            "feature_coefficients.csv"
-        )
+        coefs.to_csv("feature_coefficients.csv")
 
-        mlflow.log_artifact(
-            "feature_coefficients.csv"
-        )
+        mlflow.log_artifact("feature_coefficients.csv")
 
     # ============================================================
     # 15. Log the trained model
     # ============================================================
 
-    mlflow.sklearn.log_model(
-        sk_model=best_model,
-        name="model"
-    )
+    mlflow.sklearn.log_model(sk_model=best_model, name="model")
 
     # ============================================================
     # 16. Add useful MLflow tags
     # ============================================================
 
-    mlflow.set_tag(
-        "task",
-        "next_day_stock_price_prediction"
-    )
+    mlflow.set_tag("task", "next_day_stock_price_prediction")
 
-    mlflow.set_tag(
-        "dataset",
-        "TSLA"
-    )
+    mlflow.set_tag("dataset", "TSLA")
 
-    mlflow.set_tag(
-        "target_type",
-        "log_return"
-    )
+    mlflow.set_tag("target_type", "log_return")
 
-    mlflow.set_tag(
-        "validation_strategy",
-        "time_series_split"
-    )
+    mlflow.set_tag("validation_strategy", "time_series_split")
 
-    mlflow.set_tag(
-        "baseline",
-        "persistence_naive"
-    )
+    mlflow.set_tag("baseline", "persistence_naive")
 
     print(
         "\nMLflow run completed."
